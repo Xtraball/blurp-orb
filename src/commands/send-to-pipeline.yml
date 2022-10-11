@@ -17,6 +17,7 @@ parameters:
     type: enum
     enum: ["fail", "pass", "always"]
     default: "always"
+
 steps:
   - run:
       when: on_fail
