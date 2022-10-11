@@ -32,4 +32,4 @@ steps:
   - run:
       when: always
       name: Blurp - Sending Notification
-      command: <<include(scripts/notify.sh)>>
+      command: <<include(scripts/send_to_pipeline.sh)>>
