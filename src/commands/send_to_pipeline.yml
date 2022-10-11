@@ -8,6 +8,9 @@ parameters:
   pipeline_params:
     type: string
     default: "{}"
+  pipeline_personal_token:
+    type: string
+    default: ""
   event:
     description: |
       In what event should this message send? Options: ["fail", "pass", "always"]

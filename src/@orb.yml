@@ -1,8 +1,8 @@
-version: 1.0
+version: 2.1
 
 description: >
   Blurp
 
 display:
-  home_url: https://github.com/CircleCI-Public/blurp-orb/wiki
-  source_url: https://github.com/CircleCI-Public/blurp-orb
+  home_url: https://github.com/Xtraball/blurp-orb/wiki
+  source_url: https://github.com/Xtraball/blurp-orb
