@@ -23,12 +23,19 @@ steps:
       when: on_fail
       name: Blurp - Detecting Job Status (FAIL)
       command: |
-        echo 'export CCI_STATUS="fail"' > /tmp/BLURP_JOB_STATUS
+        echo 'export CCI_STATUS="fail"' > /tmp/BLURP_JOB_VARS
   - run:
       when: on_success
       name: Blurp - Detecting Job Status (PASS)
       command: |
-        echo 'export CCI_STATUS="pass"' > /tmp/BLURP_JOB_STATUS
+        echo 'export CCI_STATUS="pass"' > /tmp/BLURP_JOB_VARS
+  - run:
+      when: always
+      name: Blurp - Export params
+      command: |
+        echo 'export PIPELINE_URL="<<parameters.pipeline_url>>"' >> /tmp/BLURP_JOB_VARS
+        echo 'export PIPELINE_PARAMS="<<parameters.pipeline_params>>"' >> /tmp/BLURP_JOB_VARS
+        echo 'export PIPELINE_PERSONAL_TOKEN="<<parameters.pipeline_personal_token>>"' >> /tmp/BLURP_JOB_VARS
   - run:
       when: always
       name: Blurp - Sending Notification

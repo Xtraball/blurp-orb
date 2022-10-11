@@ -1,8 +1,83 @@
 version: 2.1
-
-description: >
+description: |
   Blurp
-
 display:
   home_url: https://github.com/Xtraball/blurp-orb/wiki
   source_url: https://github.com/Xtraball/blurp-orb
+commands:
+  send-to-pipeline:
+    description: |
+      Blurp
+    parameters:
+      event:
+        default: always
+        description: |
+          In what event should this message send? Options: ["fail", "pass", "always"]
+        enum:
+          - fail
+          - pass
+          - always
+        type: enum
+      pipeline_params:
+        default: '{}'
+        type: string
+      pipeline_personal_token:
+        default: ""
+        type: string
+      pipeline_url:
+        default: ""
+        type: string
+    steps:
+      - run:
+          command: |
+            echo 'export CCI_STATUS="fail"' > /tmp/BLURP_JOB_VARS
+          name: Blurp - Detecting Job Status (FAIL)
+          when: on_fail
+      - run:
+          command: |
+            echo 'export CCI_STATUS="pass"' > /tmp/BLURP_JOB_VARS
+          name: Blurp - Detecting Job Status (PASS)
+          when: on_success
+      - run:
+          command: |
+            echo 'export PIPELINE_URL="<<parameters.pipeline_url>>"' >> /tmp/BLURP_JOB_VARS
+            echo 'export PIPELINE_PARAMS="<<parameters.pipeline_params>>"' >> /tmp/BLURP_JOB_VARS
+            echo 'export PIPELINE_PERSONAL_TOKEN="<<parameters.pipeline_personal_token>>"' >> /tmp/BLURP_JOB_VARS
+          name: Blurp - Export params
+          when: always
+      - run:
+          command: |-
+            #!/bin/sh
+
+            PostToCircleCI()
+            {
+                echo -e "PostToCircleCI \n"
+                echo -e $CCI_STATUS"\n"
+                previous_commit_message=`git log --format=format:%s -n 1 HEAD~1`
+
+                if [[ $CCI_STATUS != "pass" ]]
+                then
+                    echo -e "Job failed, we skip."
+                    exit 0
+                fi
+
+
+                # If the previous commit right before the update_version was from the update migration pipeline we skip it
+                if [[ $previous_commit_message == *"SKIP_MIGRATION_STEP"* ]]
+                then
+                    echo -e "We will skip the update_migration pipeline as we already come from it."
+                else
+                    echo -e "Now we must trigger the update_migration pipeline."
+
+                    echo -e will exec: curl --location --request POST \'${PIPELINE_URL}\' --header \'Content-Type: application/json\' -d \'{\"parameters\": {\"gem\": \"${PIPELINE_PARAMS}\"}}\' -u \'${PIPELINE_PERSONAL_TOKEN}:\'
+                    curl --location --request POST ${PIPELINE_URL} --header 'Content-Type: application/json' -d '{"parameters": {"gem": "'${PIPELINE_PARAMS}'"}}' -u "${PIPELINE_PERSONAL_TOKEN}:"
+                fi
+
+                exit 0
+            }
+
+            . "/tmp/BLURP_JOB_VARS"
+
+            PostToCircleCI
+          name: Blurp - Sending Notification
+          when: always
